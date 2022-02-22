@@ -12,12 +12,12 @@ public class Setup {
     @EventListener
     public void onSetup2(SetupEvent event)
     {
-        System.out.println("Setup 2");
+        System.out.println("Setup 2 | " + event.getType().getName() + " | " + event.getText());
     }
 
     @EventListener(event = Events.SETUP)
     public void onSetup3(SetupEvent event)
     {
-        System.out.println("Setup 3");
+        System.out.println("Setup 3 | " + event.getType().getName() + " | " + event.getText());
     }
 }
