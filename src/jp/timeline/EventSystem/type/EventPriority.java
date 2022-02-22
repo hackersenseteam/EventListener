@@ -15,7 +15,8 @@ public enum EventPriority {
         this.number = (byte) number;
     }
 
-    public String getName() {
+    @Override
+    public String toString() {
         return this.name;
     }
 
