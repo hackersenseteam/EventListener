@@ -17,7 +17,8 @@ public enum EventType
         this.level = level;
     }
 
-    public String getName()
+    @Override
+    public String toString()
     {
         return this.name;
     }
