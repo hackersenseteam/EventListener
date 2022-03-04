@@ -5,7 +5,7 @@ import jp.timeline.EventSystem.type.EventType;
 public class EventCore
 {
     public static final String name = "EventSystem";
-    public static final String dev = "Timeline";
+    public static final String dev = "HackerSense";
     public static final String ver = "3.1";
     private final Events event;
     private EventType type = EventType.NONE;
