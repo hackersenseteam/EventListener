@@ -8,11 +8,12 @@ public enum EventPriority {
     LOWEST("Lowest", 4);
 
     private final String name;
-    private final byte number;
+    private final int level;
 
-    EventPriority(String name, int number){
+    EventPriority(String name, int level)
+    {
         this.name = name;
-        this.number = (byte) number;
+        this.level = level;
     }
 
     @Override
@@ -20,7 +21,7 @@ public enum EventPriority {
         return this.name;
     }
 
-    public byte getByte() {
-        return this.number;
+    public int getLevel() {
+        return this.level;
     }
 }

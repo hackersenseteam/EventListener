@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 public @interface EventListener
 {
     Events event() default Events.NONE;
-    EventPriority priority() default EventPriority.HIGH;
+    EventPriority priority() default EventPriority.MEDIUM;
 }

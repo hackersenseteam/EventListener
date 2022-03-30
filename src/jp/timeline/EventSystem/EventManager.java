@@ -1,15 +1,18 @@
 package jp.timeline.EventSystem;
 
+import jp.timeline.EventSystem.type.EventPriority;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class EventManager
 {
-    private static final MethodHandles.Lookup lookup = MethodHandles.lookup();
+    public static final MethodHandles.Lookup lookup = MethodHandles.lookup();
     private static final CopyOnWriteArrayList<Object> listeners = new CopyOnWriteArrayList<>();
 
     public static void reset()
@@ -32,8 +35,30 @@ public class EventManager
 
     public static EventCore call(EventCore event) {
         listeners.forEach(listener -> {
-            for (Method method : listener.getClass().getDeclaredMethods())
-            {
+            List<Method> methods = Arrays.asList(listener.getClass().getDeclaredMethods());
+            methods.sort((method1, method2) -> {
+                if (!method1.isAccessible())
+                    method1.setAccessible(true);
+
+                if (!method2.isAccessible())
+                    method2.setAccessible(true);
+
+                EventPriority priority1 = null;
+                EventPriority priority2 = null;
+
+                if (method1.isAnnotationPresent(EventListener.class))
+                    priority1 = method1.getDeclaredAnnotation(EventListener.class).priority();
+
+                if (method2.isAnnotationPresent(EventListener.class))
+                    priority2 = method2.getDeclaredAnnotation(EventListener.class).priority();
+
+                if (priority1 != null && priority2 != null && priority1 != priority2)
+                    return priority1.getLevel() - priority2.getLevel();
+                else
+                    return 0;
+            });
+
+            methods.forEach(method -> {
                 if (!method.isAccessible())
                     method.setAccessible(true);
 
@@ -82,7 +107,7 @@ public class EventManager
                         throwable.printStackTrace();
                     }
                 }
-            }
+            });
         });
 
         return event;
