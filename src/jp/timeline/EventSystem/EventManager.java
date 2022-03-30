@@ -1,5 +1,6 @@
 package jp.timeline.EventSystem;
 
+import jp.timeline.EventSystem.threads.MethodInvoke;
 import jp.timeline.EventSystem.type.EventPriority;
 
 import java.lang.invoke.MethodHandle;
@@ -33,7 +34,13 @@ public class EventManager
             Arrays.asList(projects).forEach(listeners::remove);
     }
 
-    public static EventCore call(EventCore event) {
+    public static EventCore call(EventCore event)
+    {
+        return call(event, false);
+    }
+
+    public static EventCore call(EventCore event, boolean multi_thread)
+    {
         listeners.forEach(listener -> {
             List<Method> methods = Arrays.asList(listener.getClass().getDeclaredMethods());
             methods.sort((method1, method2) -> {
@@ -67,45 +74,48 @@ public class EventManager
                     if (method.getParameterCount() > 1)
                         throw new EventException("[EventSystem] too many method types! method name:" + method.getName());
 
-                    try
-                    {
-                        MethodHandle handle = EventManager.lookup.unreflect(method);
-                        Events events = method.getDeclaredAnnotation(EventListener.class).event();
-
-                        if (events != Events.NONE && (events == event.getEvents() || events == Events.ALL))
+                    if (multi_thread)
+                        new MethodInvoke("Multi Thread Invoke " + method.getName(), method, listener, event).start();
+                    else
+                        try
                         {
-                            if (method.getParameterCount() == 1)
+                            MethodHandle handle = EventManager.lookup.unreflect(method);
+                            Events events = method.getDeclaredAnnotation(EventListener.class).event();
+
+                            if (events != Events.NONE && (events == event.getEvents() || events == Events.ALL))
+                            {
+                                if (method.getParameterCount() == 1)
+                                {
+                                    Class<?> methodObject = method.getParameterTypes()[0];
+                                    if (methodObject != event.getClass())
+                                        throw new EventException("[EventSystem] The event does not match! method name:" + method.getName());
+                                    handle.invoke(listener, event);
+                                }
+                                else
+                                {
+                                    handle.invoke(listener);
+                                }
+                            }
+                            else if (events == Events.NONE && method.getParameterCount() == 1)
                             {
                                 Class<?> methodObject = method.getParameterTypes()[0];
-                                if (methodObject != event.getClass())
-                                    throw new EventException("[EventSystem] The event does not match! method name:" + method.getName());
-                                handle.invoke(listener, event);
+
+                                if (methodObject != null && methodObject == event.getClass())
+                                    handle.invoke(listener, event);
                             }
-                            else
+                            else if (events == event.getEvents())
                             {
-                                handle.invoke(listener);
+                                throw new EventException("Incorrect usage! method name:" + method.getName());
                             }
                         }
-                        else if (events == Events.NONE && method.getParameterCount() == 1)
+                        catch (InvocationTargetException | IllegalAccessException ignored)
                         {
-                            Class<?> methodObject = method.getParameterTypes()[0];
 
-                            if (methodObject != null && methodObject == event.getClass())
-                                handle.invoke(listener, event);
                         }
-                        else if (events == event.getEvents())
+                        catch (Throwable throwable)
                         {
-                            throw new EventException("Incorrect usage! method name:" + method.getName());
+                            throwable.printStackTrace();
                         }
-                    }
-                    catch (InvocationTargetException | IllegalAccessException ignored)
-                    {
-
-                    }
-                    catch (Throwable throwable)
-                    {
-                        throwable.printStackTrace();
-                    }
                 }
             });
         });
