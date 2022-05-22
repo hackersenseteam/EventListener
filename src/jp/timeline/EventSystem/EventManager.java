@@ -72,7 +72,7 @@ public class EventManager
                 if (method.isAnnotationPresent(EventListener.class))
                 {
                     if (method.getParameterCount() > 1)
-                        throw new EventException("[EventSystem] too many method types! method name:" + method.getName());
+                        throw new EventException("Too many method types! method name:" + method.getName());
 
                     if (multi_thread)
                         new MethodInvoke("Multi Thread Invoke " + method.getName(), method, listener, event).start();
@@ -88,7 +88,7 @@ public class EventManager
                                 {
                                     Class<?> methodObject = method.getParameterTypes()[0];
                                     if (methodObject != event.getClass())
-                                        throw new EventException("[EventSystem] The event does not match! method name:" + method.getName());
+                                        throw new EventException("The event does not match! method name:" + method.getName());
                                     handle.invoke(listener, event);
                                 }
                                 else
